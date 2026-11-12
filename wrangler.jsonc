@@ -1,0 +1,26 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "linktree",
+  "main": "worker.js",
+  "compatibility_date": "2026-11-12",
+
+  // The four static files stay at the repo root (GitHub Pages needs them there).
+  // .assetsignore keeps the git metadata and deploy config out of the upload.
+  "assets": {
+    "directory": ".",
+    "binding": "ASSETS",
+    "html_handling": "auto-trailing-slash",
+    "not_found_handling": "none"
+  },
+
+  // The zone already has a Custom Domain (ridwanafazn.my.id -> portofx-v2).
+  // More specific Workers Routes win over the hostname-wide Custom Domain,
+  // so only these paths are handed to this Worker.
+  // Wildcards (rather than exact /linktree and /linktree/*) are used because
+  // Cloudflare route patterns match the whole URL including the query string.
+  // The Worker rejects anything that is not /linktree or /linktree/*.
+  "routes": [
+    { "pattern": "ridwanafazn.my.id/linktree*", "zone_name": "ridwanafazn.my.id" },
+    { "pattern": "www.ridwanafazn.my.id/linktree*", "zone_name": "ridwanafazn.my.id" }
+  ]
+}
