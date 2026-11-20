@@ -2,9 +2,9 @@
   'use strict';
 
   const root = document.documentElement;
-  const BAR = { light: '#b7c2da', dark: '#0f1320' };
+  const BAR = { light: '#f7f5f2', dark: '#08090d' };
 
-  /* ---------- Theme (runs immediately, before first paint) ---------- */
+  /* ---------- Theme ---------- */
   const store = {
     get() {
       try {
@@ -37,6 +37,7 @@
     const $ = (sel) => document.querySelector(sel);
     const toast = $('#toast');
     const sheet = $('#sheet');
+    const themeBtn = $('#theme');
     const canNativeShare = !!navigator.share && matchMedia('(pointer: coarse)').matches;
     let timer;
     let current = null; // { url, title } of the link whose dots were pressed
@@ -69,22 +70,31 @@
       try {
         await navigator.share(data);
       } catch (e) {
-        if (e.name !== 'AbortError') say('Could not share');
+        if (e.name !== 'AbortError') say('Gagal membagikan');
       }
     };
 
     /* Theme toggle */
-    $('#theme').addEventListener('click', () => {
+    const syncThemeLabel = () => {
+      themeBtn.setAttribute(
+        'aria-label',
+        root.dataset.theme === 'dark' ? 'Aktifkan tema terang' : 'Aktifkan tema gelap'
+      );
+    };
+    syncThemeLabel();
+
+    themeBtn.addEventListener('click', () => {
       const next = root.dataset.theme === 'dark' ? 'light' : 'dark';
       applyTheme(next);
       store.set(next);
+      syncThemeLabel();
     });
 
     /* Share this whole page (top-right button) */
     $('#share').addEventListener('click', async () => {
       const data = { title: document.title, url: location.href };
       if (canNativeShare) return nativeShare(data);
-      say((await copy(data.url)) ? 'Link copied' : 'Could not copy link');
+      say((await copy(data.url)) ? 'Tautan disalin' : 'Gagal menyalin tautan');
     });
 
     /* Share one link (three-dot button on each card) */
@@ -93,15 +103,19 @@
     const pvUrl = $('#pv-url');
     const preview = $('#preview');
     const moreLi = $('#t-more-li');
-    if (canNativeShare) moreLi.hidden = false;
+    if (canNativeShare) {
+      moreLi.hidden = false;
+      $('.targets').classList.add('has-native');
+    }
 
     const openSheet = (link) => {
       const a = link.querySelector('.main');
+      const ico = a.querySelector('.ico');
       const url = a.href;
       const title = a.querySelector('.title').textContent.trim();
       current = { url, title };
 
-      pvIco.innerHTML = a.querySelector('.ico').innerHTML;
+      pvIco.innerHTML = ico.innerHTML;
       pvTitle.textContent = title;
       pvUrl.textContent = url.replace(/^https?:\/\/(www\.)?/, '').replace(/\/$/, '');
       preview.style.setProperty('--c', getComputedStyle(link).getPropertyValue('--c').trim());
@@ -124,7 +138,7 @@
     $('#t-copy').addEventListener('click', async () => {
       const ok = await copy(current.url);
       sheet.close();
-      say(ok ? 'Link copied' : 'Could not copy link');
+      say(ok ? 'Tautan disalin' : 'Gagal menyalin tautan');
     });
 
     $('#t-more').addEventListener('click', () => {
