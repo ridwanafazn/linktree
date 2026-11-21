@@ -2,7 +2,7 @@
   'use strict';
 
   const root = document.documentElement;
-  const BAR = { light: '#f7f5f2', dark: '#08090d' };
+  const BAR = { light: '#f2f0eb', dark: '#0b0b0b' };
 
   /* ---------- Theme ---------- */
   const store = {
@@ -70,55 +70,44 @@
       try {
         await navigator.share(data);
       } catch (e) {
-        if (e.name !== 'AbortError') say('Gagal membagikan');
+        if (e.name !== 'AbortError') say('Could not share');
       }
     };
 
     /* Theme toggle */
-    const syncThemeLabel = () => {
-      themeBtn.setAttribute(
-        'aria-label',
-        root.dataset.theme === 'dark' ? 'Aktifkan tema terang' : 'Aktifkan tema gelap'
-      );
-    };
-    syncThemeLabel();
-
     themeBtn.addEventListener('click', () => {
       const next = root.dataset.theme === 'dark' ? 'light' : 'dark';
       applyTheme(next);
       store.set(next);
-      syncThemeLabel();
     });
 
     /* Share this whole page (top-right button) */
     $('#share').addEventListener('click', async () => {
       const data = { title: document.title, url: location.href };
       if (canNativeShare) return nativeShare(data);
-      say((await copy(data.url)) ? 'Tautan disalin' : 'Gagal menyalin tautan');
+      say((await copy(data.url)) ? 'Link copied' : 'Could not copy link');
     });
 
-    /* Share one link (three-dot button on each card) */
+    /* Share one link (three-dot button on each row) */
     const pvIco = $('#pv-ico');
     const pvTitle = $('#pv-title');
     const pvUrl = $('#pv-url');
-    const preview = $('#preview');
     const moreLi = $('#t-more-li');
+
     if (canNativeShare) {
       moreLi.hidden = false;
       $('.targets').classList.add('has-native');
     }
 
     const openSheet = (link) => {
-      const a = link.querySelector('.main');
-      const ico = a.querySelector('.ico');
+      const a = link.querySelector('.link-main');
       const url = a.href;
       const title = a.querySelector('.title').textContent.trim();
       current = { url, title };
 
-      pvIco.innerHTML = ico.innerHTML;
+      pvIco.innerHTML = a.querySelector('.ico').innerHTML;
       pvTitle.textContent = title;
       pvUrl.textContent = url.replace(/^https?:\/\/(www\.)?/, '').replace(/\/$/, '');
-      preview.style.setProperty('--c', getComputedStyle(link).getPropertyValue('--c').trim());
 
       const u = encodeURIComponent(url);
       const t = encodeURIComponent(title);
@@ -138,7 +127,7 @@
     $('#t-copy').addEventListener('click', async () => {
       const ok = await copy(current.url);
       sheet.close();
-      say(ok ? 'Tautan disalin' : 'Gagal menyalin tautan');
+      say(ok ? 'Link copied' : 'Could not copy link');
     });
 
     $('#t-more').addEventListener('click', () => {
